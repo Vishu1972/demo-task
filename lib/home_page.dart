@@ -1,6 +1,8 @@
 import 'dart:async';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/painting.dart';
 import 'package:http/http.dart' as http;
@@ -44,7 +46,7 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.blue,
-        title: const Text("Task 1"),
+        title: const Text("Home"),
         elevation: 0.0,
       ),
       body: imageList.length > 0
@@ -68,46 +70,79 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
 
-            ListView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: restaurantList.length,
-              itemBuilder: (context, index) {
-                var imageData = restaurantList[index]['Num'] == "http://saloon.myurbangrocery.com/Admin/image/"
-                                || restaurantList[index]['Num'] == "http://saloon.myurbangrocery.com/Admin/image/noimg.jpg"
-                                ? "http://saloon.myurbangrocery.com/Admin/image/download.jfif"
-                                : restaurantList[index]['Num'];
-                return Container(
-                  margin: const EdgeInsets.only(left: 16, right: 16, bottom: 8),
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade300,
-                    borderRadius: BorderRadius.circular(32)
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      Image.network(
-                        '$imageData',
-                        fit: BoxFit.fill,
-                        height: 220,
+            Container(
+              margin: const EdgeInsets.only(left: 16, right: 16, bottom: 24),
+              child: GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 8,
+                    mainAxisSpacing: 8,
+                  childAspectRatio: 0.82
+                ),
+                itemCount: restaurantList.length,
+                itemBuilder: (context, index) {
+                  return Container(
+                      decoration: BoxDecoration(
+                          color: Colors.grey.shade300,
+                          borderRadius: BorderRadius.circular(32)
                       ),
-                      Container(
-                        margin: const EdgeInsets.only(top: 16),
-                        child: Text(
-                          '${restaurantList[index]['Type']}',
-                          style: const TextStyle(
-                            fontSize: 18,
-                            color: Colors.black,
-                            fontWeight: FontWeight.w600
+                      height: 200,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          ClipRRect(
+                            child: CachedNetworkImage(
+                              imageUrl: restaurantList[index]['Num'],
+                              placeholder: (context, url) => const Center(child:  CircularProgressIndicator()),
+                              errorWidget: (context, url, error) => Center(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.center,
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: const [
+                                      Icon(Icons.error),
+                                      SizedBox(height: 8,),
+                                      Text(
+                                        'No Image',
+                                        style: TextStyle(
+                                          fontSize: 18,
+                                          color: Colors.black54,
+                                          fontWeight: FontWeight.w900
+                                        ),
+                                      )
+                                    ],
+                                  )
+                              ),
+                              height: 160,
+                              width: MediaQuery.of(context).size.width,
+                              fit: BoxFit.cover,
+                            ),
+                            borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
                           ),
-                        ),
-                      ),
-                    ],
-                  )
-                );
-              },
+                          /* Image.network(
+                          '${restaurantList[index]['Num']}',
+                          fit: BoxFit.fill,
+                          height: 220,
+                        ),*/
+                          Container(
+                            margin: const EdgeInsets.only(top: 0),
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                            child: Text(
+                              '${restaurantList[index]['Type']}',
+                              style: const TextStyle(
+                                  fontSize: 18,
+                                  color: Colors.black,
+                                  fontWeight: FontWeight.w600
+                              ),
+                            ),
+                          ),
+                        ],
+                      )
+                  );
+                },
+              ),
             ),
           ],
         ),
@@ -128,7 +163,6 @@ class _HomePageState extends State<HomePage> {
     if (response.statusCode == 200) {
       var result = json.decode(response.body);
 
-//      print(result['Designation']);
       var imageArr = result['Designation'].split(",");
       setState(() {
         for(int i=0; i<imageArr.length; i++) {
